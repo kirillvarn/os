@@ -1,4 +1,6 @@
 qemu.log
 *.bin
 *.img
-dist/
+
+*/*.bin
+*/*.o
