@@ -1,3 +1,4 @@
 qemu.log
-boot.bin
+*.bin
+*.img
 dist/
