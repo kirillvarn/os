@@ -1,3 +1,5 @@
+#include "../drivers/screen.h"
+
 int main () {
-  return 0;
+  print("Hello, world\n");  
 }
