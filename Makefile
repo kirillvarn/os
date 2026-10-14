@@ -1,6 +1,6 @@
-C_SOURCES = $(wildcard kernel/*.c drivers/*.c)
-HEADERS = $(wildcard kernel/*.h drivers/*.h)
-OBJ = ${C_SOURCES:.c=.o}
+C_SOURCES = $(wildcard kernel/*.c drivers/*.c cpu/*.c)
+HEADERS = $(wildcard kernel/*.h drivers/*.h cpu/*.j)
+OBJ = ${C_SOURCES:.c=.o cpu/interrupt.o}
 
 all: os-image
 
@@ -19,9 +19,12 @@ kernel.bin: kernel/kernel_entry.o ${OBJ}
 %.bin: %.asm
 	nasm $< -f bin -o $@
 	
-run:
-	qemu-system-i386 -drive file=os.img,format=raw,if=floppy -d int,cpu_reset -no-reboot -no-shutdown
-
+run: os.img
+	qemu-system-i386 -display gtk \
+		-drive file=os.img,format=raw,if=floppy \
+		-d int,cpu_reset -D qemu.log \
+		-no-reboot -no-shutdown
 clean:
 	rm -rf *.bin *.o os.img
 	rm -rf kernel/*.o boot/*.bin drivers/*.o
+

@@ -9,7 +9,9 @@
 int get_screen_offset(int col, int row);
 int get_cursor();
 void set_cursor(int offset);
+
 void print_at(char* message, int col, int row);
 void print(char* message);
 void clear_screen();
+
 int handle_scrolling(int cursor_offset);
