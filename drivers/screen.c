@@ -1,6 +1,7 @@
 #include "screen.h"
 #include "../kernel/low_level.h"
-#include "../kernel/util.h"
+#include "../libc/string.h"
+#include "../libc/mem.h"
 
 void print_char(char character, int col, int row, char attribute_byte)
 {
@@ -25,15 +26,20 @@ void print_char(char character, int col, int row, char attribute_byte)
   if (character == '\n')
   {
     int rows = offset / (2 * MAX_COLS);
-    offset = get_screen_offset(79, rows);
+    offset = get_screen_offset(0, rows + 1);
+  }
+  else if (character == 0x08)
+  {
+    video_memory[offset] = ' ';
+    video_memory[offset + 1] = attribute_byte;
   }
   else
   {
     video_memory[offset] = character;
     video_memory[offset + 1] = attribute_byte;
+    offset += 2;
   }
-
-  offset += 2;
+  
   offset = handle_scrolling(offset);
 
   set_cursor(offset);
@@ -83,6 +89,14 @@ void print(char *message)
   print_at(message, -1, -1);
 }
 
+void print_backspace()
+{
+  int offset = get_cursor() - 2;
+  int row = get_offset_row(offset);
+  int col = get_offset_col(offset);
+  print_char(0x08, col, row, WHITE_ON_BLACK);
+}
+
 void clear_screen()
 {
   int row = 0;
@@ -108,12 +122,13 @@ int handle_scrolling(int cursor_offset)
 
   for (int i = 1; i < MAX_ROWS; i++)
   {
-    memory_copy((char*)get_screen_offset(0, i) + VIDEO_ADDRESS, (char*)get_screen_offset(0, i - 1) + VIDEO_ADDRESS, MAX_COLS * 2);
+    memory_copy((char *)get_screen_offset(0, i) + VIDEO_ADDRESS, (char *)get_screen_offset(0, i - 1) + VIDEO_ADDRESS, MAX_COLS * 2);
   }
 
-  char* last_line = (char*) get_screen_offset(0, MAX_ROWS - 1) + VIDEO_ADDRESS;
+  char *last_line = (char *)get_screen_offset(0, MAX_ROWS - 1) + VIDEO_ADDRESS;
 
-  for (int i = 0; i < MAX_COLS * 2; i++) {
+  for (int i = 0; i < MAX_COLS * 2; i++)
+  {
     last_line[i] = 0;
   }
 
@@ -121,3 +136,6 @@ int handle_scrolling(int cursor_offset)
 
   return cursor_offset;
 }
+
+int get_offset_row(int offset) { return offset / (2 * MAX_COLS); }
+int get_offset_col(int offset) { return (offset - (get_offset_row(offset) * 2 * MAX_COLS)) / 2; }
